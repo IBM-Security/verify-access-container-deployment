@@ -1,4 +1,4 @@
-#Assumes create-secrets.sh used to create key file, iviaadmin, and cfgsvc secrets
+#Assumes create-secrets.sh used to create key file, iviaadmin, and cfgsvc secrets, and the iviaop configmap
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -66,6 +66,7 @@ spec:
     matchLabels:
       app: openldap
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -149,6 +150,7 @@ spec:
     matchLabels:
       app: postgresql
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -167,7 +169,7 @@ spec:
             secretName: postgresql-keys
       containers:
         - name: postgresql
-          image: icr.io/ivia/ivia-postgresql:11.0.0.0
+          image: icr.io/ivia/ivia-postgresql:11.0.1.0
           livenessProbe:
             tcpSocket:
               port: 5432
@@ -224,6 +226,7 @@ spec:
     matchLabels:
       app: iviaconfig
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -240,7 +243,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviaconfig
-          image: icr.io/ivia/ivia-config:11.0.0.0
+          image: icr.io/ivia/ivia-config:11.0.1.0
           volumeMounts:
             - mountPath: /var/shared
               name: iviaconfig
@@ -278,8 +281,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
 #          command: [ "/sbin/bootstrap.sh" ]
-      imagePullSecrets:
-        - name: dockerlogin
 ---
 # for external service access, see https://console.bluemix.net/docs/containers/cs_apps.html#cs_apps_public_nodeport
 apiVersion: v1
@@ -309,6 +310,7 @@ spec:
     matchLabels:
       app: iviawrprp1
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -321,7 +323,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviawrprp1
-          image: icr.io/ivia/ivia-wrp:11.0.0.0
+          image: icr.io/ivia/ivia-wrp:11.0.1.0
           ports:
             - containerPort: 9443
           volumeMounts:
@@ -360,8 +362,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 2
-      imagePullSecrets:
-        - name: dockerlogin
 ---
 # for external service access, see https://console.bluemix.net/docs/containers/cs_apps.html#cs_apps_public_nodeport
 apiVersion: v1
@@ -390,6 +390,7 @@ spec:
     matchLabels:
       app: iviaruntime
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -402,7 +403,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviaruntime
-          image: icr.io/ivia/ivia-runtime:11.0.0.0
+          image: icr.io/ivia/ivia-runtime:11.0.1.0
           ports:
             - containerPort: 9443
           volumeMounts:
@@ -447,8 +448,6 @@ spec:
             failureThreshold: 30
             periodSeconds: 10
             timeoutSeconds: 2
-      imagePullSecrets:
-        - name: dockerlogin
 ---
 apiVersion: v1
 kind: Service
@@ -473,6 +472,7 @@ spec:
     matchLabels:
       app: iviadsc
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -485,7 +485,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviadsc
-          image: icr.io/ivia/ivia-dsc:11.0.0.0
+          image: icr.io/ivia/ivia-dsc:11.0.1.0
           ports:
             - containerPort: 9443
             - containerPort: 9444
@@ -525,8 +525,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 2
-      imagePullSecrets:
-        - name: dockerlogin
 ---
 apiVersion: v1
 kind: Service
@@ -565,10 +563,9 @@ spec:
             name: iviawrprp1
             port:
               number: 9443
----              
+---
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: iviaop
   labels:
@@ -579,32 +576,26 @@ spec:
   selector:
     matchLabels:
       app: iviaop
-
   replicas: 1
-
-  template: 
+  revisionHistoryLimit: 2
+  template:
     metadata:
       labels:
         app: iviaop
-
     spec:
       volumes:
-        
         - name: iviaop-config
           configMap:
             name: iviaop-config
-
       containers:
-        - name: isvaop
-        
+        - name: iviaop
           # The fully qualified name of the IVIAOP image.
-          image: icr.io/ivia/ivia-oidc-provider:24.12
+          image: icr.io/ivia/ivia-oidc-provider:25.06
           imagePullPolicy: Always
           # Mount our volumes to the expected configuration directory
           volumeMounts:
             - name: iviaop-config
               mountPath: /var/isvaop/config
-
           readinessProbe:
             httpGet:
               path: /healthcheck/ready
@@ -615,7 +606,6 @@ spec:
             periodSeconds: 30
             successThreshold: 1
             failureThreshold: 2
-
           livenessProbe:
             httpGet:
               path: /healthcheck/alive
@@ -640,4 +630,59 @@ spec:
       nodePort: 31443
   selector:
     app: iviaop
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iviadc
+  labels:
+    app: iviadc
+  annotations:
+    version: "2.0"
+spec:
+  selector:
+    matchLabels:
+      app: iviadc
+  replicas: 1
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        app: iviadc
+    spec:
+      volumes:
+        - name: iviadc-config
+          configMap:
+            name: iviadc-config
+      containers:
+        - name: iviadc
+          # The fully qualified name of the IVIADC image.
+          image: icr.io/ivia/ivia-digital-credentials:25.06
+          imagePullPolicy: Always
+          # Mount our volumes to the expected configuration directory
+          volumeMounts:
+            - name: iviadc-config
+              mountPath: /var/config
+          env:
+          - name: NODE_TLS_REJECT_UNAUTHORIZED
+            value: "0"
+          - name: YAML_FILE
+            value: "/var/config/config.yml"
+          - name: IBM_API_EXPLORER
+            value: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iviadc
+  labels:
+    app: iviadc
+spec:
+  ports:
+    - port: 9720
+      name: iviadc
+      nodePort: 30972
+  selector:
+    app: iviadc
   type: NodePort

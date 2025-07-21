@@ -1,3 +1,9 @@
 .DS_Store
 local/*
 !*.keep
+*.swp
+ISAM-Trial-IBM.cer
+*pyenv/*
+*.pem
+*.crt
+*.key

@@ -17,6 +17,7 @@ kubectl delete secret iviaadmin
 kubectl delete secret dockerlogin
 kubectl delete secret openldap-keys
 kubectl delete secret postgresql-keys
+kubectl delete configmap iviaop-config
 kubectl delete pvc iviaconfig
 kubectl delete pvc ldaplib
 kubectl delete pvc ldapsecauthority

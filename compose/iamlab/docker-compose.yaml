@@ -186,6 +186,22 @@ services:
     environment:
       - CONTAINER_TIMEZONE=${TIMEZONE}
     volumes:
-      - ${HOME}/dockershare/isvaop-config:/var/isvaop/config
+      - ${HOME}/dockershare/isvaop-config:/var/isvaop/config:Z
     depends_on:
       - postgresql
+
+  iviadc:
+    image: ${CONTAINER_BASE}-digital-credentials:${IVIADC_VERSION}
+    networks:
+      - ivia-network
+    hostname: iviadc
+    restart: always
+    environment:
+#      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - YAML_FILE=/var/config/config.yml
+      - IBM_API_EXPLORER=1
+    volumes:
+      - ${HOME}/dockershare/iviadc-config:/var/config:Z
+    depends_on:
+      - postgresql
+      - iviaop

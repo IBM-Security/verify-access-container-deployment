@@ -27,6 +27,8 @@ mv .env .env.original
 sed  '/DB_VERSION/d' .env.original > .env
 mv .env .env.original
 sed  '/CONTAINER_BASE/d' .env.original > .env
+mv .env .env.original
+sed  '/IVIADC_VERSION/d' .env.original > .env
 rm .env.original
 cat >> .env <<EOF
 CONTAINER_BASE=${CONTAINER_BASE}
@@ -37,6 +39,7 @@ LMI_IP=${MY_LMI_IP}
 WEB1_IP=${MY_WEB1_IP}
 WEB2_IP=${MY_WEB2_IP}
 IVIAOP_VERSION=${IVIAOP_VERSION}
+IVIADC_VERSION=${IVIADC_VERSION}
 EOF
 
 

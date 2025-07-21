@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Get directory for this script
-RUNDIR="`dirname \"$0\"`"         # relative
-RUNDIR="`( cd \"$RUNDIR\" && pwd )`"  # absolutized and normalized
+RUNDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 if [ -z "$RUNDIR" ] ; then
   echo "Failed to get local path"
   exit 1  # fail

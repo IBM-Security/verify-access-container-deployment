@@ -27,9 +27,9 @@ The docker compose scripts will create a `$HOME/dockershare` directory.  If you 
 All passwords set by these scripts are `Passw0rd`.  Obviously this is not a secure password!
 
 # Create Keystores
-Before running any other scripts, run `verify-access-container-deployment/common/create-ldap-and-postgres-isvaop-keys.sh`
+Before running any other scripts, run `verify-access-container-deployment/common/create-ivia-pki.sh`
 
-This will create the `verify-access-container-deployment/local/dockerkeys` directory and populate it with keystores for PostgreSQL and OpenLDAP containers.
+This will create the `verify-access-container-deployment/local/dockerkeys` directory and populate it with keystores for PostgreSQL, OpenLDAP, IVIA WebSEAL Reverse proxy, IVIA OIDC Provider, and IVIA Digital Credential containers.
 
 # Native Docker
 To set up a native Docker environment, use the files in `verify-access-container-deployment/docker`.
@@ -73,6 +73,8 @@ To set up an environment using Kubernetes, use the files in `verify-access-conta
 These scripts assume that you have the `kubectl` utility installed and that it is configured to talk to your cluster.
 
 First, run `./create-secrets.sh` command to create the secrets required for the environment.
+
+Next, run `./create-configmap.sh` command to create the config map required for the environment.
 
 Then, run `kubectl create -f <YAML file>` to define the resources required.
 
