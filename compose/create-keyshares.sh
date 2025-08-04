@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 # Get directory for this script
 RUNDIR="`dirname \"$0\"`"         # relative
 RUNDIR="`( cd \"$RUNDIR\" && pwd )`"  # absolutized and normalized
