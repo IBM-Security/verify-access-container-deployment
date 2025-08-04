@@ -22,7 +22,7 @@ anything particularly useful.
 - configure the distributed session cache service
 
 This automated configuration assumes that the Verify Identity Access containers have been deployed with 
-the configuration defined in the `ivia-minikube.yaml` file. If your environment differs from this, you 
+the configuration defined in the `iamlab/docker-compose.yaml` file. If your environment differs from this, you 
 may need to update the provided configuration.
 
 The provided automation also assumes that you have set up host/domain names `lmi.iamlab.ibm.com` for the 
