@@ -7,3 +7,6 @@ ISAM-Trial-IBM.cer
 *.pem
 *.crt
 *.key
+*.p12
+config.yml
+*.log
