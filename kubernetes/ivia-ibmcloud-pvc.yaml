@@ -187,7 +187,7 @@ spec:
             secretName: postgresql-keys
       containers:
         - name: postgresql
-          image: icr.io/ivia/ivia-postgresql:11.0.1.0
+          image: icr.io/ivia/ivia-postgresql:11.0.2.0
           livenessProbe:
             tcpSocket:
               port: 5432
@@ -260,7 +260,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviaconfig
-          image: icr.io/ivia/verify-access-config:11.0.1.0
+          image: icr.io/ivia/verify-access-config:11.0.2.0
           volumeMounts:
             - mountPath: /var/shared
               name: iviaconfig
@@ -341,7 +341,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviawrprp1
-          image: icr.io/ivia/ivia-wrp:11.0.1.0
+          image: icr.io/ivia/ivia-wrp:11.0.2.0
           ports:
             - containerPort: 9443
           volumeMounts:
@@ -422,7 +422,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviaruntime
-          image: icr.io/ivia/ivia-runtime:11.0.1.0
+          image: icr.io/ivia/ivia-runtime:11.0.2.0
           ports:
             - containerPort: 9443
           volumeMounts:
@@ -505,7 +505,7 @@ spec:
           emptyDir: {}
       containers:
         - name: iviadsc
-          image: icr.io/ivia/ivia-dsc:11.0.1.0
+          image: icr.io/ivia/ivia-dsc:11.0.2.0
           ports:
             - containerPort: 9443
             - containerPort: 9444
@@ -621,7 +621,7 @@ spec:
         - name: iviaop
         
           # The fully qualified name of the IVIAOP image.
-          image: icr.io/isva/ivia-oidc-provider:24.12
+          image: icr.io/isva/ivia-oidc-provider:25.10
           imagePullPolicy: Always
           # Mount our volumes to the expected configuration directory
           volumeMounts:

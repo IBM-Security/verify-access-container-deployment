@@ -11,7 +11,7 @@ anything particularly useful.
 - get a trial license from [IVIA trial site](https://isva-trial.verify.ibm.com/)
 
 ## Configuration steps performed on the ivia-config container
-- accept eula
+- accept EULA
 - import PKI for database, ldap, iviaop and iviadc containers
 - set the High-Volume Database connection
 - import the trial license

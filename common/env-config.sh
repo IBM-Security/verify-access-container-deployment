@@ -19,12 +19,12 @@ MY_WEB1_IP=127.0.0.3
 MY_WEB2_IP=127.0.0.4
 
 # Versions
-CONTAINER_BASE=icr.io/ivia/ivia
-ISVA_VERSION=11.0.1.0
+CONTAINER_BASE=us.icr.io/sps-ivia/ivia
+ISVA_VERSION=11.0.2.0
 LDAP_VERSION=latest
-DB_VERSION=11.0.1.0
-IVIAOP_VERSION=25.03
-IVIADC_VERSION=25.03
+DB_VERSION=11.0.2.0
+IVIAOP_VERSION=25.10
+IVIADC_VERSION=25.12
 
 # Get directory for this script
 PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && cd .. && pwd )"

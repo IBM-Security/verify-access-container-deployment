@@ -26,7 +26,7 @@ services:
     environment:
 #     - SNAPSHOT=${SNAPSHOT}
 #     - FIXPACKS=${FIXPACKS}
-      - CONTAINER_TIMEZONE=${TIMEZONE}
+#      - CONTAINER_TIMEZONE=${TIMEZONE}
       - ADMIN_PWD=${ADMIN_PASSWORD}
 #      - CONFIG_SNAPSHOT_SECRETS=anotherSecretToDecryptWith||aKeyToTryAndDecryptWith
     volumes:
@@ -178,7 +178,8 @@ services:
       - ${HOME}/dockershare/composekeys/postgresql:/var/local:Z
 
   iviaop:
-    image: ${CONTAINER_BASE}-oidc-provider:${IVIAOP_VERSION}
+    #image: ${CONTAINER_BASE}-oidc-provider:${IVIAOP_VERSION}
+    image: icr.io/ivia/ivia-oidc-provider:${IVIAOP_VERSION}
     networks:
       - ivia-network
     hostname: iviaop
@@ -191,7 +192,8 @@ services:
       - postgresql
 
   iviadc:
-    image: ${CONTAINER_BASE}-digital-credentials:${IVIADC_VERSION}
+    #image: ${CONTAINER_BASE}-digital-credentials:${IVIADC_VERSION}
+    image: icr.io/ivia/ivia-digital-credentials:${IVIADC_VERSION}
     networks:
       - ivia-network
     hostname: iviadc
