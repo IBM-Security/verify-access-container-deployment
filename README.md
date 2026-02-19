@@ -27,9 +27,9 @@ The docker compose scripts will create a `$HOME/dockershare` directory.  If you 
 All passwords set by these scripts are `Passw0rd`.  Obviously this is not a secure password!
 
 # Create Keystores
-Before running any other scripts, run `verify-access-container-deployment/common/create-ldap-and-postgres-isvaop-keys.sh`
+Before running any other scripts, run `verify-access-container-deployment/common/create-ivia-pki.sh`
 
-This will create the `verify-access-container-deployment/local/dockerkeys` directory and populate it with keystores for PostgreSQL and OpenLDAP containers.
+This will create the `verify-access-container-deployment/local/dockerkeys` directory and populate it with keystores for PostgreSQL, OpenLDAP, IVIA WebSEAL Reverse proxy, IVIA OIDC Provider, and IVIA Digital Credential containers.
 
 # Native Docker
 To set up a native Docker environment, use the files in `verify-access-container-deployment/docker`.
@@ -74,6 +74,8 @@ These scripts assume that you have the `kubectl` utility installed and that it i
 
 First, run `./create-secrets.sh` command to create the secrets required for the environment.
 
+Next, run `./create-configmap.sh` command to create the config map required for the environment.
+
 Then, run `kubectl create -f <YAML file>` to define the resources required.
 
 There are YAML files for the following environments:
@@ -89,7 +91,7 @@ If the LMI port-forwarding isn't stable, you can also create a node port or ingr
 
 To allow worker containers to access configuration snapshots, you must set the password of the `cfgsvc` user in the LMI to match the password set in the `configreader` secret (default is `Passw0rd`).  You can set this password under **System->Account management** in the LMI.
 
-To access the Reverse Proxy you will need to determine an External IP for a Node in the cluster and then connnect to this using https on port 30443.
+To access the Reverse Proxy you will need to determine an External IP for a Node in the cluster and then connect to this using https on port 30443.
 
 For Google, access to a NodePort requires the following firewall rule to be created:
 `gcloud compute firewall-rules create iviawrp-node-port --allow tcp:30443`
@@ -124,7 +126,7 @@ helm repo add ibm-security-incubator https://raw.githubusercontent.com/IBM-Secur
 # OpenShift
 To set up an environment using OpenShift, use the files in `verify-access-container-deployment/openshift`.
 
-OpenShift 4.2 or above is required for lightweight containers to work with the default security context.  For older versions your can use the OpenShift 3.x template file.  These instructions are for OpenShift 4.x.
+OpenShift 4.2 or above is required for lightweight containers to work with the default security context.  For older versions you can use the OpenShift 3.x template file.  These instructions are for OpenShift 4.x.
 
 These scripts assume that you have the `oc` utility installed and it is configured to talk to your OpenShift system.
 
@@ -247,7 +249,7 @@ To restore from a backup, perform these steps:
 
 # License
 
-The contents of this repository are open-source under the Apache 2.0 licence.
+The contents of this repository are open-source under the Apache 2.0 license.
 
 ```
 Copyright 2018-2021 International Business Machines

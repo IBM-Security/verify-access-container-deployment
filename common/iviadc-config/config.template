@@ -1,0 +1,64 @@
+general:
+    log_level: "debug"
+    name: "onpremise"
+    license:
+      accept: true
+      key: "@@ISVADC_LICENSE@@"
+    url: "https://iviadc:9720"
+    request_log:
+      enabled: false
+      format: ":date[iso] :method :url :http-version :status"
+    enable_doc_cache: false
+    tls:
+      private_key: !file "/var/config/iviadc.key"
+      cert: !file "/var/config/iviadc.pem"
+    wallet:
+      name: "ivia"
+      encryption_key: "my-key"
+    auth:
+      jwt:
+        header_name: my-jwt
+        cert: !file "/var/config/iviadc.pem"
+      dynamic_client_registration:
+        endpoint: "https://iviawrprp1:9443/isvaop/oauth2"
+        ca_cert: !file "/var/config/isvawrp.pem"
+        client_id: "admin"
+        client_secret: "secret"
+        cache_access_token: true
+      introspection:
+        cache:
+          max_entries: 101
+          max_age: 102
+        providers:
+        - name: "my-provider"
+          endpoint: "https://iviawrprp1:9443/isvaop/oauth2"
+          oid4vci:
+            default_wallet_client_id: "default_oid4vci_wallet"
+          claims:
+          - name: "active"
+            value: "true"
+          type: remote
+          remote:
+            introspect_sub_path: "/introspect"
+            client_id: "admin"
+            client_secret: "secret"
+    status_registry:
+      type: "internal"
+      min_statuslist_size: 131072
+      max_statuslist_size: 131072
+      max_random_allocation_attempts: 100
+database:
+  postgresql:
+    hosts:
+    - postgresql
+    port: 5432
+    user: "postgres"
+    password: "Passw0rd"
+    ssl: true
+    skip_hostname_verify: true
+    ca_cert: !file "/var/config/postgres.crt"
+  pool:
+    min_connections: 5
+    max_connections: 20
+    max_idle_time: 10000
+    connection_timeout: 10000

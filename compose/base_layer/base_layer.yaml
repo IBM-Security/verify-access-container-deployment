@@ -1,0 +1,125 @@
+container:
+  compose_services:
+  - iviawrprp1
+  - iviaruntime
+  - iviadsc
+  - iviadsc-replica
+  docker_compose_yaml: "iamlab/docker-compose.yaml"
+  ssl_certificates:
+  - name: "lmi_trust_store"
+    signer_certificates:
+    - "postgres.crt"
+    - "ldap.crt"
+  - name: "rt_profile_keys"
+    signer_certificates:
+    - "postgres.crt"
+  - name: "pdsrv"
+    personal_certificates:
+    - name: "WRP"
+      p12_file: "isvawrp.p12"
+      secret: "Passw0rd"
+    signer_certificates:
+    - "isvaop.pem"
+  cluster:
+    runtime_database:
+      host: "postgresql"
+      port: 5432
+      type: "postgresql"
+      user: "postgres"
+      password: "Passw0rd"
+      ssl: True
+      db_name: "ivia"
+    dsc:
+      client_grace: 600
+      connection_idle_timeout: 0
+      max_session_lifetime: 3600
+      service_port: 9443
+      replication_port: 9444
+      worker_threads: 64
+      servers:
+      - ip: "iviadsc"
+        service_port: 9443
+        replication_port: 9444
+      - ip: "iviadsc-replica"
+        service_port: 9443
+        replication_port: 9444
+  activation: #Activation codes
+    trial_license: "ISAM-Trial-IBM.cer"
+webseal:
+  runtime:
+    policy_server: "ldap"
+    user_registry: "ldap"
+    ldap:
+      host: "openldap"
+      port: 636
+      dn: "cn=root,secAuthority=Default"
+      dn_password: "Passw0rd"
+      key_file: "lmi_trust_store"
+    clean_ldap: True
+    domain: "Default"
+    admin_user: "sec_master"
+    admin_password: "Passw0rd"
+    admin_cert_lifetime: 1460
+    ssl_compliance: "fips"
+  http_transforms:
+    lua:
+    - "req_openid_config.lua"
+    - "rsp_openid_config.lua"
+  pdadmin:
+    acls:
+    - name: "unauth"
+      users:
+      - name: "sec_master"
+        permissions: "TcmdbsvaBRrxl"
+      any_other: "Tr"
+      unauthenticated: "Tr"
+    reverse_proxies:
+    - host: "www.iamlab.ibm.com"
+      instance: "rp1"
+      acls:
+      - name: "unauth"
+        junctions:
+        - "/isvaop/oauth2/.well-known"
+  reverse_proxy:
+  - name: "rp1"
+    host: "www.iamlab.ibm.com"
+    http:
+      enabled: "no"
+    https:
+      enabled: "yes"
+    domain: "Default"
+    ldap:
+      ssl: "yes"
+      port: 636
+      key_file: "lmi_trust_store"
+    junctions:
+    - junction_point: "/isvaop"
+      description: "Verify Identiy Access OIDC OP Container"
+      junction_type: "ssl"
+      server_hostname: "iviaop"
+      server_port: 8436
+    stanza_configuration:
+    - stanza: "ssl"
+      entry_id: "webseal-cert-keyfile-label"
+      value: "WRP"
+      operation: "update"
+    - stanza: "http-transformations"
+      entry_id: "req_openid"
+      value: "req_openid_config.lua"
+      operation: "add"
+    - stanza: "http-transformations"
+      entry_id: "rsp_openid"
+      value: "rsp_openid_config.lua"
+      operation: "add"
+    - stanza: "http-transformations:req_openid"
+      operation: "add"
+    - stanza:  "http-transformations:req_openid"
+      operation: "add"
+      entry_id: "request-match"
+      value: "request:GET /isvaop/oauth2/.well-known/oauth-authorization-server *"
+    - stanza: "http-transformations:rsp_openid"
+      operation: "add"
+    - stanza:  "http-transformations:rsp_openid"
+      operation: "add"
+      entry_id: "request-match"
+      value: "response:GET /isvaop/oauth2/.well-known/oauth-authorization-server *"

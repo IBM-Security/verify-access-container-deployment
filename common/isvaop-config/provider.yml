@@ -35,4 +35,4 @@ keystore:
         content: '@postgres.crt'
     key:
       - label: httpserverkey
-        content: '@isvaop_key.pem'
+        content: '@isvaop.key'

@@ -26,7 +26,7 @@ services:
     environment:
 #     - SNAPSHOT=${SNAPSHOT}
 #     - FIXPACKS=${FIXPACKS}
-      - CONTAINER_TIMEZONE=${TIMEZONE}
+#      - CONTAINER_TIMEZONE=${TIMEZONE}
       - ADMIN_PWD=${ADMIN_PASSWORD}
 #      - CONFIG_SNAPSHOT_SECRETS=anotherSecretToDecryptWith||aKeyToTryAndDecryptWith
     volumes:
@@ -178,7 +178,8 @@ services:
       - ${HOME}/dockershare/composekeys/postgresql:/var/local:Z
 
   iviaop:
-    image: ${CONTAINER_BASE}-oidc-provider:${IVIAOP_VERSION}
+    #image: ${CONTAINER_BASE}-oidc-provider:${IVIAOP_VERSION}
+    image: icr.io/ivia/ivia-oidc-provider:${IVIAOP_VERSION}
     networks:
       - ivia-network
     hostname: iviaop
@@ -186,6 +187,23 @@ services:
     environment:
       - CONTAINER_TIMEZONE=${TIMEZONE}
     volumes:
-      - ${HOME}/dockershare/isvaop-config:/var/isvaop/config
+      - ${HOME}/dockershare/isvaop-config:/var/isvaop/config:Z
     depends_on:
       - postgresql
+
+  iviadc:
+    #image: ${CONTAINER_BASE}-digital-credentials:${IVIADC_VERSION}
+    image: icr.io/ivia/ivia-digital-credentials:${IVIADC_VERSION}
+    networks:
+      - ivia-network
+    hostname: iviadc
+    restart: always
+    environment:
+#      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - YAML_FILE=/var/config/config.yml
+      - IBM_API_EXPLORER=1
+    volumes:
+      - ${HOME}/dockershare/iviadc-config:/var/config:Z
+    depends_on:
+      - postgresql
+      - iviaop
