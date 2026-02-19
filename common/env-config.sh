@@ -19,7 +19,7 @@ MY_WEB1_IP=127.0.0.3
 MY_WEB2_IP=127.0.0.4
 
 # Versions
-CONTAINER_BASE=us.icr.io/sps-ivia/ivia
+CONTAINER_BASE=icr.io/ivia/ivia
 ISVA_VERSION=11.0.2.0
 LDAP_VERSION=latest
 DB_VERSION=11.0.2.0
