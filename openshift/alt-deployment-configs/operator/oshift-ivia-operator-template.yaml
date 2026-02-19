@@ -135,7 +135,7 @@ objects:
     type: ClusterIP
 
 parameters:
-  - dsiplaName: Deployment Name
+  - displayName: Deployment Name
     description: Human name for the new Verify Access Operator managed deployment.
     name: APP_NAME
     value: ivia-operator-sample
