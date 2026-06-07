@@ -1,258 +1,522 @@
-# Version Information
-These assets are for IBM Verify Identity Access v11.0.0.0.
-They will also work for older versions (eg. IBM Security Verify Access v10.0.8.0) if version is changed where appropriate.
+# IBM Verify Identity Access - Container Deployment
 
-Assets for v10.0.0.0 (which will also work with v10.0.1.0) are available as a release.  Checkout tag `v10.0.0.0-1`.
+## Table of Contents
 
-Assets for IBM Security Access Manager are available at https://ibm.biz/isamdocker
+- [Version Information](#version-information)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Deployment Options](#deployment-options)
+- [Common Configuration](#common-configuration)
+- [Deployment Methods](#deployment-methods)
+  - [Docker Compose](#docker-compose)
+  - [Native Docker](#native-docker)
+  - [Kubernetes](#kubernetes)
+  - [Helm](#helm)
+  - [OpenShift](#openshift)
+- [Automated Configuration](#automated-configuration)
+- [Backup and Restore](#backup-and-restore)
+- [Troubleshooting](#troubleshooting)
+- [Resources](#resources)
+- [License](#license)
 
-# Resources
-## Cookbooks
-### Deployment with Native Docker and Docker Compose
-This cookbook describes deployment with Native Docker and Docker Compose.  It covers some docker concepts, deployment of Verify Identity Access containers, and initial configuration of a simple Verify Identity Access system. [Download docker cookbook from Security Learning Academy](http://ibm.biz/Verify_Access_Docker_Cookbook).
+## Version Information
 
-### Deployment with Kubernetes
-This cookbook describes deployment using Kubernetes.  It requires that you have access to a Kubernetes cluster.  This could be a hosted cluster on a cloud environment or a test environment built using a tool such as Minikube.
-https://www.securitylearningacademy.com/course/view.php?id=6860
+**Current Version:** IBM Verify Identity Access v11.0.3.0
 
-## Community assistance
-If you have questions about deployment, or about IBM Security Verify, you can ask them on the IAM Group of the IBM Security Community: https://ibm.biz/iamcommunity
+## Quick Start
 
-# Common Requirements and Setup
+Get started with Docker Compose in 4 steps:
 
-These scripts expect to have write access to `$HOME` and `/tmp`.
+```bash
+# 1. Generate PKI certificates
+./common/create-ivia-pki.sh
 
-The docker compose scripts will create a `$HOME/dockershare` directory.  If you want to use a different directory, you'll need to modify the common/env-config.sh file AND the docker-compose YAML file.
+# 2. Create key shares
+cd compose && ./create-keyshares.sh
 
-All passwords set by these scripts are `Passw0rd`.  Obviously this is not a secure password!
+# 3. Deploy containers
+cd iamlab && docker-compose up -d
 
-# Create Keystores
-Before running any other scripts, run `verify-access-container-deployment/common/create-ivia-pki.sh`
-
-This will create the `verify-access-container-deployment/local/dockerkeys` directory and populate it with keystores for PostgreSQL, OpenLDAP, IVIA WebSEAL Reverse proxy, IVIA OIDC Provider, and IVIA Digital Credential containers.
-
-# Native Docker
-To set up a native Docker environment, use the files in `verify-access-container-deployment/docker`.
-
-These scripts assume you have the following IP addresses available locally on your Docker system with entries in `/etc/hosts` for the associated hostnames:
-- 127.0.0.2 (lmi.iamlab.ibm.com)
-- 127.0.0.3 (www.iamlab.ibm.com)
-
-If you want to use other local IP addresses then you'll need to modify the `common/env-config.sh` file.
-
-Run `./docker-setup.sh` script to create docker containers.
-
-You can now connect to the Verify Identity Access LMI at https://127.0.0.2
-
-To clean up the docker resources created, run the `./cleanup.sh` script.
-
-# Docker Compose
-To set up an environment with docker-compose, use the files in container-deployment/compose.
-
-These scripts will create the `$HOME/dockershare` directory.
-
-These scripts assume you have the following IP addresses available locally on your Docker system with entries in `/etc/hosts` for the associated hostnames:
-- 127.0.0.2 (lmi.iamlab.ibm.com)
-- 127.0.0.3 (www.iamlab.ibm.com)
-
-If you want to use other local IP addresses then you'll need to modify the common/env-config.sh file and run `./update-env-file.sh`
-
-Run `./create-keyshares.sh` to copy keys to `$HOME/dockershare/composekeys` directory
-
-Change directory to the `iamlab` directory.
-
-Run command `docker-compose up -d` to create containers.
-
-You can now connect to the Verify Identity Access LMI at https://127.0.0.2
-
-To clean up the docker resources created, run `docker-compose down -v` command.
-
-# Kubernetes
-To set up an environment using Kubernetes, use the files in `verify-access-container-deployment/kubernetes`.
-
-These scripts assume that you have the `kubectl` utility installed and that it is configured to talk to your cluster.
-
-First, run `./create-secrets.sh` command to create the secrets required for the environment.
-
-Next, run `./create-configmap.sh` command to create the config map required for the environment.
-
-Then, run `kubectl create -f <YAML file>` to define the resources required.
-
-There are YAML files for the following environments:
-- Minikube (`ivia-minikube.yaml`)
-   - Also works with Kubernetes included with Docker CE on Mac
-- IBM Cloud Free Edition (`ivia-ibmcloud.yaml`)
-- IBM Cloud Paid Edition (`ivia-ibmcloud-pvc.yaml`)
-- Google (`ivia-google.yaml`)
-
-Once all pods are running, you can run the `./lmi-access.sh` script to start a port-forward session for access to the LMI. With this running, you can access LMI using at https://localhost:9443
-
-If the LMI port-forwarding isn't stable, you can also create a node port or ingress using the provided `iviaconfig-nodeport.yaml` or `iviaconfig-ingress.yaml` files (but this will open your LMI to the world).  If using an ingress, you will need to determine the IP address where this is listening and then point `lmi.iamlab.ibm.com` to it in your `/etc/hosts` file.
-
-To allow worker containers to access configuration snapshots, you must set the password of the `cfgsvc` user in the LMI to match the password set in the `configreader` secret (default is `Passw0rd`).  You can set this password under **System->Account management** in the LMI.
-
-To access the Reverse Proxy you will need to determine an External IP for a Node in the cluster and then connect to this using https on port 30443.
-
-For Google, access to a NodePort requires the following firewall rule to be created:
-`gcloud compute firewall-rules create iviawrp-node-port --allow tcp:30443`
-
-The Minikube YAML file includes an ingress definition for the Reverse Proxy.  To use the ingress, you will need to determine the IP address where this is listening and then point `www.iamlab.ibm.com` to it in your `/etc/hosts` file.
-
-You can add an ingress to the Kubernetes cluster provided by Docker CE on MAC using this command:
-```
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.47.0/deploy/static/provider/cloud/deploy.yaml
+# 4. Access the LMI
+# Open https://127.0.0.2 in your browser
 ```
 
-# Helm 3.0
-To set up an environment using Helm, use the files in `container-deployment/helm`.
+**Default credentials:** `admin` / `Passw0rd` (⚠️ Change in production!)
 
-> Enhancements have been made to the Helm chart for v10.0.2.0 (chart version v1.3.0) to allow service names to be set.  This means that the release created can work with configuration archives saved from other environments without the need to modify CoreDNS.  For more details, see the chart release notes.
+## Prerequisites
 
-These scripts assume that you have the `kubectl` and `helm` utilities installed and that they are configured to talk to a cluster.
+### System Requirements
 
-First, run `./create-secrets.sh` command to create the secrets required for the environment.
+- Docker or Podman with Docker Compose
+- Write access to `$HOME` and `/tmp`
+- Available local IP addresses (see [Common Configuration](#common-configuration))
 
-Then, run `./helm-install.sh` to run the helm command to create a Security Verify release (called `iamlab`).
+### Required Setup
 
-The output from this command includes the information you will need to connect to the LMI and Reverse Proxy services.
+**1. Generate PKI Certificates**
 
-To delete the release and clean up, run the `./cleanup.sh` command.
+Before any deployment, create keystores:
 
-The Helm Charts included here are also hosted in the incubator repo at: https://github.com/ibm-security/helm-charts. You can add these as a Helm repo using command:
+```bash
+./common/create-ivia-pki.sh
 ```
+
+This creates [`local/dockerkeys`](local/dockerkeys) with keystores for:
+- PostgreSQL
+- OpenLDAP
+- WebSEAL Reverse Proxy
+- OIDC Provider container
+- Digital Credential container
+
+**2. Configure Hostnames**
+
+Add these entries to `/etc/hosts`:
+
+```
+127.0.0.2  lmi.iamlab.ibm.com
+127.0.0.3  www.iamlab.ibm.com
+```
+
+⚠️ **Security Note:** All default passwords are `Passw0rd` - change these for production use!
+
+## Deployment Options
+
+Choose the deployment method that fits your needs:
+
+| Method | Best For | Complexity | Production Ready | Directory |
+|--------|----------|------------|------------------|-----------|
+| **Docker Compose** | Development, Testing | ⭐ Low | ❌ No | [`compose/`](compose/) |
+| **Native Docker** | Local Development | ⭐ Low | ❌ No | [`docker/`](docker/) |
+| **Kubernetes** | Production, Cloud | ⭐⭐ Medium | ✅ Yes | [`kubernetes/`](kubernetes/) |
+| **Helm** | Production, Cloud | ⭐⭐ Medium | ✅ Yes | [`helm/`](helm/) |
+| **OpenShift** | Enterprise | ⭐⭐⭐ High | ✅ Yes | [`openshift/`](openshift/) |
+
+## Common Configuration
+
+All deployment methods use these shared settings (configured in [`common/env-config.sh`](common/env-config.sh)):
+
+### Network Configuration
+
+| IP Address | Hostname | Purpose |
+|------------|----------|---------|
+| 127.0.0.2 | lmi.iamlab.ibm.com | Management Interface (LMI) |
+| 127.0.0.3 | www.iamlab.ibm.com | Web Reverse Proxy |
+
+To use different IP addresses, modify [`common/env-config.sh`](common/env-config.sh) and run [`compose/update-env-file.sh`](compose/update-env-file.sh) for Docker Compose deployments.
+
+### Shared Directory
+
+Docker Compose creates `$HOME/dockershare` for shared data. To use a different directory, update:
+- [`common/env-config.sh`](common/env-config.sh)
+- Docker Compose YAML files
+
+## Deployment Methods
+
+### Docker Compose
+
+**Location:** [`compose/`](compose/)
+
+#### Setup Steps
+
+1. **Create key shares:**
+   ```bash
+   cd compose
+   ./create-keyshares.sh
+   ```
+
+2. **Deploy containers:**
+   ```bash
+   cd iamlab
+   docker-compose up -d
+   ```
+
+3. **Verify deployment:**
+   ```bash
+   docker-compose ps
+   curl -k https://127.0.0.2
+   ```
+
+#### Cleanup
+
+```bash
+docker-compose down -v
+```
+
+#### Advanced Configuration
+
+For base layer configuration with automated setup, see [`compose/base_layer/README.md`](compose/base_layer/README.md).
+
+---
+
+### Native Docker
+
+**Location:** [`docker/`](docker/)
+
+#### Setup Steps
+
+1. **Run setup script:**
+   ```bash
+   cd docker
+   ./docker-setup.sh
+   ```
+
+2. **Access LMI:**
+   Open https://127.0.0.2
+
+#### Cleanup
+
+```bash
+./cleanup.sh
+```
+
+---
+
+### Kubernetes
+
+**Location:** [`kubernetes/`](kubernetes/)
+
+#### Prerequisites
+
+- `kubectl` installed and configured
+- Access to a Kubernetes cluster (Minikube, GKE, EKS, etc.)
+
+#### Setup Steps
+
+1. **Create secrets:**
+   ```bash
+   cd kubernetes
+   ./create-secrets.sh
+   ```
+
+2. **Create config map:**
+   ```bash
+   ./create-configmap.sh
+   ```
+
+3. **Deploy resources:**
+   ```bash
+   kubectl create -f <YAML file>
+   ```
+
+   Available YAML files:
+   - [`ivia-minikube.yaml`](kubernetes/ivia-minikube.yaml) - Minikube / Docker Desktop
+   - [`ivia-ibmcloud.yaml`](kubernetes/ivia-ibmcloud.yaml) - IBM Cloud Free
+   - [`ivia-ibmcloud-pvc.yaml`](kubernetes/ivia-ibmcloud-pvc.yaml) - IBM Cloud Paid
+   - [`ivia-google.yaml`](kubernetes/ivia-google.yaml) - Google Cloud
+
+4. **Access LMI:**
+   ```bash
+   ./lmi-access.sh
+   # Then open https://localhost:9443
+   ```
+
+#### Post-Deployment Configuration
+
+⚠️ **Important:** Set the `cfgsvc` user password in LMI to match the `configreader` secret (default: `Passw0rd`):
+- Navigate to **System → Account management** in LMI
+- Update the password for user `cfgsvc`
+
+
+#### Advanced Configuration
+
+For base layer configuration, see [`kubernetes/base_layer/README.md`](kubernetes/base_layer/README.md).
+
+---
+
+### Helm
+
+**Location:** [`helm/`](helm/)
+
+#### Prerequisites
+
+- `kubectl` and `helm` installed and configured
+- Access to a Kubernetes cluster
+
+#### Setup Steps
+
+1. **Create secrets:**
+   ```bash
+   cd helm
+   ./create-secrets.sh
+   ```
+
+2. **Install release:**
+   ```bash
+   ./helm3-install.sh
+   ```
+
+   This creates a release named `iamlab`. The output includes connection information for LMI and Reverse Proxy services.
+
+#### Cleanup
+
+```bash
+./cleanup.sh
+```
+
+#### Using Helm Repository
+
+The charts are also available in the IBM Security incubator repository:
+
+```bash
 helm repo add ibm-security-incubator https://raw.githubusercontent.com/IBM-Security/helm-charts/master/repo/incubator
+helm repo update
 ```
 
-# OpenShift
-To set up an environment using OpenShift, use the files in `verify-access-container-deployment/openshift`.
+#### Chart Enhancements (v1.3.0+)
 
-OpenShift 4.2 or above is required for lightweight containers to work with the default security context.  For older versions you can use the OpenShift 3.x template file.  These instructions are for OpenShift 4.x.
+Version 10.0.2.0+ allows service names to be configured, enabling configuration archives from other environments without CoreDNS modifications. See chart release notes for details.
 
-These scripts assume that you have the `oc` utility installed and it is configured to talk to your OpenShift system.
+---
 
-## Login and create project
-Login as your standard user:
+### OpenShift
 
-```oc login -u developer -p developer```
+**Location:** [`openshift/`](openshift/)
 
-Create a project:
+#### Prerequisites
 
-```oc new-project <project>```
+- OpenShift 4.2+ (for lightweight containers with default security context)
+- `oc` utility installed and configured
+- Cluster administrator access (for security setup)
 
-## Create and apply security constraints
-Although the lightweight worker containers can run with the default service account, additional permissions are required for other components:
-- The Verify Identity Access configuration container requires setuid and setgid permissions.
-- The postgreSQL container requires permission to run as a non-root user
-- The OpenLDAP container requires permission to run as root
+#### Setup Steps
 
-To provide these permissions an additional security constraint and a set of service accounts are created.  You must be a cluster administrator to add security constraints and grant them to service accounts.  For example, login as kubeadmin user:
-
-```oc login -u kubeadmin -p xxxxxxxxx -n <project>```
-
-To perform the security setup, run the `./setup-security.sh` command.
-
-## Create secrets
-Now login again as your standard user:
-
-```oc login -u developer -p developer -n <project>```
-
-Next, run `./create-secrets.sh` command to create the secrets required for the environment.
-
-## Load templates
-Load the templates using the following commands:
-
+**1. Login and create project:**
+```bash
+oc login -u developer -p developer
+oc new-project <project>
 ```
+
+**2. Configure security (as cluster admin):**
+```bash
+oc login -u kubeadmin -p <password> -n <project>
+./setup-security.sh
+```
+
+This creates security constraints for:
+- Configuration container (setuid/setgid permissions)
+- PostgreSQL (non-root user)
+- OpenLDAP (root user)
+
+**3. Create secrets (as standard user):**
+```bash
+oc login -u developer -p developer -n <project>
+./create-secrets.sh
+```
+
+**4. Load templates:**
+```bash
 oc create -f verify-identity-access-openldap-template.yaml
 oc create -f verify-identity-access-postgresql-template.yaml
 oc create -f verify-identity-access-templates-openshift4.yaml
 oc create -f verify-access-operator-template.yaml
 ```
 
-## Deploy applications
-You can deploy applications using either the OpenShift console or using the command line.
+**5. Deploy applications:**
 
-### Deploy in OpenShift console
-Perform the following actions:
-1. Open the OpenShift console
-1. Login as your standard user
-1. Select **+Add**
-1. Select **From Catalog**
-1. Use **verify** in search bar
-1. Select template and deploy
+Via console:
+1. Open OpenShift console
+2. Select **+Add → From Catalog**
+3. Search for "verify"
+4. Select and deploy template
 
-As part of deploying a template you will get the chance to update the default deploy parameters.
-
-### Deploy on the command line
-Use the following command to search for Verify Identity Access templates:
-```
+Via command line:
+```bash
+# List available templates
 oc new-app -S --template=verify
-```
 
-To show the parameters available in a template, use the `describe` command. For example:
-```
+# View template parameters
 oc describe template verify-identity-access-config
+
+# Deploy template
+oc new-app --template verify-identity-access-config \
+  -p ADMIN_PW=Passw0rd \
+  -p CONFIG_PW=Passw0rd
 ```
 
-To deploy a template, use the `oc new-app` command specifying the template and any parameter overrides you need.  For example:
+#### Accessing Services
+
+**LMI Access:**
+```bash
+./lmi-access.sh
+# Then open https://localhost:9443
 ```
-oc new-app --template verify-identity-access-config -p ADMIN_PW=Passw0rd -p CONFIG_PW=Passw0rd
+
+For management access, create a route using [`lmi-route.yaml`](openshift/lmi-route.yaml).
+
+**Web Proxy Access:**
+OpenShift's web proxy routes traffic to the Reverse Proxy. Determine the IP address and add to `/etc/hosts`:
+```
+<IP>  www.iamlab.ibm.com
 ```
 
-## Access LMI and Web Proxy
-Once Verify Identity Access is deployed, you can run the `./lmi-access.sh` script to start a port-forward session for access to the LMI.
-With this running, you can access LMI using at https://localhost:9443.
+#### Operator Deployment
 
-If the LMI port-forwarding isn't stable, you can also create a route using the provided `lmi-route.yaml` file (but this will open your LMI to the world).  You will need to determine the IP address where this is listening and then point `lmi.iamlab.ibm.com` to it in your `/etc/hosts` file.
+For automated production container management, see the [Operator Deployment Guide](openshift/alt-deployment-configs/operator/README.md).
 
-OpenShift includes a web proxy which can route traffic to the Verify Identity Access Reverse Proxy.  You will need to determine the IP address where this is listening and then point `www.iamlab.ibm.com` to it in your `/etc/hosts` file.
+## Automated Configuration
 
-To allow worker containers to access configuration snapshots, you must create an LMI user that matches the `configuration read username` and `configuration read password` set during deployment of the configuration container. This is done under **System->Account management** in the LMI. The default username is `cfgsvc` and this user already exists in the LMI.  If you use this username you will only need to set the password.
+New deployments can be automatically configured using the `ibmvia-autoconf` Python package.
 
+### Prerequisites
 
-## OpenShift Operator deployment
-The [Operator Deployment Demo](openshift/alt-deployment-configs/operator/README.md) can be used to automate management of 
-production containers using the Verify Identity Access Operator.
+- PKI files in the configuration directory (copy or symlink from [`local/dockerkeys`](local/dockerkeys))
+- [`env.properties`](configuration/env.properties) file configured with deployment details
 
-# Automated Configuration
-New deployments can be automatically configured using the `verify-access-autoconf` python package to apply a YAML configuration file. The provided ``first-steps.yaml`` configuration file assumes that you have a copy of the PKI used to deploy the containers in the configuration directory.
-This can be done by either copying the files, or using a symbolic link to the directory which contains the required keys/certificates.
+### Example: Docker Compose Configuration
 
-The `env.properties` file is used to supply the url, user, secret, and activation codes for the deployment. This file may need to be updated if you 
-have made changes to the above deployments.
+```bash
+cd configuration
 
-For example a docker-compose deployment can be configured by executing the following from the ``verify-access-container-deployment/configuration`` directory:
+# Link PKI directory
+ln -s ../local/dockerkeys pki
 
-```
-ln -s pki $HOME/dockershare/composekeys
-pip install verify-access-autoconf
+# Install configuration tool
+pip install ibmvia-autoconf
+
+# Load environment variables
 source env.properties
-python -m verify_access_autoconf #Accepts licenses, configures SSL databases and runtime environments.
+
+# Run initial configuration
+python -m ibmvia_autoconf
+
+# Apply WebSEAL configuration
 export ISVA_CONFIG_YAML=webseal_authsvc_login.yaml
-python -m verify_access_autoconf #Creates a WebSEAL instance and enables AAC authentication.
+python -m ibmvia_autoconf
 ```
 
+### What Gets Configured
 
-# Backup and Restore
+The automation performs:
+1. License acceptance
+2. SSL database configuration
+3. Runtime environment setup
+4. WebSEAL instance creation
+5. AAC authentication setup
 
-To backup the state of your environment, use the `./isva-backup....sh` script in the directory for the environment you're using.  The backup tar file created will contain:
-- Content of the `verify-access-container-deployment/local/dockerkeys` directory
+## Backup and Restore
+
+### Creating Backups
+
+Each deployment method includes a backup script:
+
+```bash
+# Docker Compose
+./compose/ivia-backup-compose.sh
+
+# Native Docker
+./docker/ivia-backup-docker.sh
+
+# Kubernetes
+./kubernetes/ivia-backup-kubernetes.sh
+
+# Helm
+./helm/ivia-backup-helm.sh
+
+# OpenShift
+./openshift/ivia-backup-openshift.sh
+```
+
+**Backup contents:**
+- PKI certificates from [`local/dockerkeys`](local/dockerkeys)
 - OpenLDAP directory content
 - PostgreSQL database content
-- Configuration snapshot from the Verify Identity Access config container
+- Configuration snapshot from config container
 
-To restore from a backup, perform these steps:
+### Restoring from Backup
 
-1. Delete the `verify-access-container-deployment/local/dockerkeys` directory
-1. Run `verify-access-container-deployment/common/restore-keys.sh <archive tar file>`
-1. Complete setup for the environment you want to create (until containers are running)
-1. Run `./ivia-restore....sh <archive tar file>` to restore configuration.
+1. **Delete existing keystores:**
+   ```bash
+   rm -rf local/dockerkeys
+   ```
 
-# License
+2. **Restore keys:**
+   ```bash
+   ./common/restore-keys.sh <backup-archive.tar>
+   ```
+
+3. **Deploy environment** (follow setup steps for your chosen method)
+
+4. **Restore configuration:**
+   ```bash
+   # Use the appropriate restore script for your deployment
+   ./compose/ivia-restore-compose.sh <backup-archive.tar>
+   ```
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue:** Cannot access LMI at https://127.0.0.2
+
+**Solutions:**
+- Verify containers are running: `docker-compose ps` or `kubectl get pods`
+- Check hostname resolution: `ping lmi.iamlab.ibm.com`
+- Verify `/etc/hosts` entries are correct
+- Check firewall rules allow connections to ports 443/9443
+
+---
+
+**Issue:** Permission denied errors
+
+**Solutions:**
+- Ensure write access to `$HOME` and `/tmp`
+- For Docker Compose: Check `$HOME/dockershare` permissions
+- For Kubernetes: Verify PVC permissions and storage class
+
+---
+
+**Issue:** PKI/Certificate errors
+
+**Solutions:**
+- Verify [`common/create-ivia-pki.sh`](common/create-ivia-pki.sh) completed successfully
+- Check [`local/dockerkeys`](local/dockerkeys) directory exists and contains files
+- Ensure certificates are readable: `ls -la local/dockerkeys/`
+
+---
+
+**Issue:** Configuration snapshots not accessible
+
+**Solutions:**
+- Verify `cfgsvc` user password matches `configreader` secret
+- Check configuration container is running
+- Review container logs for errors
+
+---
+
+**Issue:** Port conflicts
+
+**Solutions:**
+- Check if ports 443, 9443, 30443 are already in use: `netstat -tuln | grep -E '443|9443|30443'`
+- Modify port mappings in deployment YAML files
+- Update [`common/env-config.sh`](common/env-config.sh) if using different IPs
+
+## Resources
+
+### Documentation
+
+- **Docker Cookbook:** [Download from Security Learning Academy](http://ibm.biz/Verify_Access_Docker_Cookbook)
+  - Covers Docker concepts, container deployment, and initial configuration
+
+- **Kubernetes Cookbook:** [Security Learning Academy Course](https://www.securitylearningacademy.com/course/view.php?id=6860)
+  - Requires access to a Kubernetes cluster (hosted or local via Minikube)
+
+- **Official Documentation:** [IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/en/SSPREK/welcome.html)
+
+### Community Support
+
+For questions about deployment or IBM Security Verify:
+- **IAM Community:** https://ibm.biz/iamcommunity
+
+### Related Repositories
+
+- **Helm Charts:** https://github.com/ibm-security/helm-charts
+
+## License
 
 The contents of this repository are open-source under the Apache 2.0 license.
 
 ```
-Copyright 2018-2021 International Business Machines
+Copyright 2018-2026 International Business Machines
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -265,4 +529,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-```
