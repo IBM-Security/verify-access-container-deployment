@@ -111,10 +111,6 @@ After successful execution, verify the configuration:
 
 ### Common Issues
 
-**Issue:** `pip install ibmvia_autoconf` fails
-- **Solution:** Ensure Python 3.x and pip are installed: `python3 --version && pip3 --version`
-- **Solution:** Try using pip3 explicitly: `pip3 install ibmvia_autoconf`
-
 **Issue:** Connection refused to management URL
 - **Solution:** Verify containers are running: `kubectl get pods`
 - **Solution:** Check ingress/service configuration: `kubectl get ingress,svc`
