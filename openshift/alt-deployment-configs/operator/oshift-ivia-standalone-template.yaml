@@ -6,12 +6,13 @@ metadata:
   creationTimestamp: null
   name: ivia-operator-with-config-template
   annotations:
-    openshift.io/display-name: IBM Verify Identity Access Appliance Template
+    openshift.io/display-name: IBM Verify Identity Access Appliance (Operator) Template
     iconClass: icon-sso
-    description: IBM Verify Identity Access Appliance deployment
+    description: IBM Verify Identity Access Appliance deployment using the verify-identity-access-operator
     openshift.io/long-description: This template deploys the core services required for an IBM
       Verify Identity Access environment.  You must have the IBM Verify Identity Access Operator
-      installed.
+      installed. The operator secret can be read from the namespace that the operator's controller
+      pod is deployed to.
     openshift.io/documentation-url: https://ibm.biz/isamdocker
     openshift.io/provider-display-name: Lachlan Gleeson
     openshift.io/support-url: https://ibm.biz/iamcommunity
