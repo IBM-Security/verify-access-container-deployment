@@ -115,10 +115,6 @@ After successful execution, verify the configuration:
 
 ### Common Issues
 
-**Issue:** `pip install ibmvia_autoconf` fails
-- **Solution:** Ensure Python 3.x and pip are installed: `python3 --version && pip3 --version`
-- **Solution:** Try using pip3 explicitly: `pip3 install ibmvia_autoconf`
-
 **Issue:** Connection refused to management URL
 - **Solution:** Verify containers are running: `docker compose -f iamlab/docker-compose.yaml ps`
 - **Solution:** Check container networking: `docker network ls` and `docker network inspect <network_name>`
