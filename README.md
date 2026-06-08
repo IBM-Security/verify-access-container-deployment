@@ -262,10 +262,6 @@ helm repo add ibm-security-incubator https://raw.githubusercontent.com/IBM-Secur
 helm repo update
 ```
 
-#### Chart Enhancements (v1.3.0+)
-
-Version 10.0.2.0+ allows service names to be configured, enabling configuration archives from other environments without CoreDNS modifications. See chart release notes for details.
-
 ---
 
 ### OpenShift
@@ -274,7 +270,7 @@ Version 10.0.2.0+ allows service names to be configured, enabling configuration 
 
 #### Prerequisites
 
-- OpenShift 4.2+ (for lightweight containers with default security context)
+- OpenShift 4.2+
 - `oc` utility installed and configured
 - Cluster administrator access (for security setup)
 
