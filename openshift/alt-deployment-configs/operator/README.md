@@ -16,11 +16,6 @@ services before creating containers.
         -p RUNTIME_SERVICE='iviaruntime' \
         -p WEBSEAL_SERVICE='iviawebseal' \
         -p DSC_SERVICE='iviadsc' \
-        -p OPERATOR_URL='https://verify-access-operator-controller-manager-snapshot-service.openshift-operators.svc.cluster.local:7443' \
-        -p OPERATOR_USER='apikey' \
-        -p OPERATOR_RW_PASSWORD='TODO' \
-        -p OPERATOR_RO_PASSWORD='TODO' \
-        -p OPERATOR_TLS_CERT='-----BEGIN CERTIFICATE-----\noaDDD7...4CbFbw1MGhXNyOV...FQIB4e\n-----END CERTIFICATE-----' \
         -p IVIA_IMAGE_NAME='icr.io/ivia/ivia' \
         -p WRP_INSTANCE='default' \
         -p DSC_INSTANCE='1' \
@@ -28,18 +23,21 @@ services before creating containers.
         -p SERVICE_ACCOUNT='verifyaccess' \
         | oc create -f -
 
-3 - Test deployment as required
+3 - Update the `verify-access-operator` secret with the rw.pwd for the Operator's snapshot management service.
 
-4 - Upload generated (and tested) snapshot to operator using bash script
+`oc set data secret/verify-access-operator rw.pwd='random_string'`
 
-Secrets for operator can be read from operator namespace
+Secrets for the ibm verify access operator can be read from openshift operator's namespace
 `oc get secret verify-access-operator -n openshift-operators -o yaml`
-A simple bash script is provided to read the verify-access-operator secret from the `openshift-operators` namespace, then 
-attach to the configuration container and upload the specified snapshot to the Operator's snapshot manager service.
+
+4 - Test deployment as required
+
+
+A simple bash script is provided to read the verify-access-operator secret from the `openshift-operators` namespace, start a curl container and upload the specified snapshot to the Operator's snapshot manager service.
 
     $ bash upload_snapshot_to_operator.sh <configuration_container_id> <snapshot_name>
 
-eg: `$ bash upload_snapshot_to_operator.sh isamconfig-8694c5fb66-77rr5 ivia_10.0.5.0_published.snapshot`
+eg: `$ bash upload_snapshot_to_operator.sh ivia_11.0.3.0_operator-template.snapshot`
 
 >Note: the "snapshotId" property in the operator only refers to the "operator-template" substring in the snapshot file name.
 

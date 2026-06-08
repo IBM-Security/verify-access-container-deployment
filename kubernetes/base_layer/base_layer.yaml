@@ -1,10 +1,9 @@
 container:
+  k8s_namespace: default
   k8s_deployments:
-    namespace: default
-    deployments:
-    - iviawrprp1
-    - iviaruntime
-    - iviadsc
+  - iviawrprp1
+  - iviaruntime
+  - iviadsc
   management_authorization:
     authorization_enforcement: True
     roles:
