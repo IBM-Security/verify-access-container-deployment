@@ -41,7 +41,7 @@ cd iamlab && docker-compose up -d
 # Open https://127.0.0.2 in your browser
 ```
 
-**Default credentials:** `admin` / `Passw0rd` (⚠️ Change !)
+**Default credentials:** `admin` / `Passw0rd` (⚠️ Change It!)
 
 ## Prerequisites
 
@@ -65,8 +65,8 @@ This creates [`local/dockerkeys`](local/dockerkeys) with keystores for:
 - PostgreSQL
 - OpenLDAP
 - WebSEAL Reverse Proxy
-- OIDC Provider container
-- Digital Credential container
+- OIDC Provider
+- Digital Credential
 
 **2. Configure Hostnames**
 
@@ -77,7 +77,7 @@ Add these entries to `/etc/hosts`:
 127.0.0.3  www.iamlab.ibm.com
 ```
 
-⚠️ **Security Note:** All default passwords are `Passw0rd` - change these for production use!
+⚠️ **Security Note:** All default passwords are `Passw0rd` - change these for your environment!
 
 ## Deployment Options
 
