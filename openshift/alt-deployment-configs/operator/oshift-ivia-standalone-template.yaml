@@ -26,7 +26,9 @@ message: |-
     - ${RUNTIME_SERVICE}
     - ${WEBSEAL_SERVICE}
   
-  Note:: The TLS X509 Certificate for the Opertor's snapshot service must be base64 encoded.
+  Note:: The verify-access-operator secret must be updated with the rw.pwd to start. This property
+        can be found in the secret of the same name in the namespace where the operator's controller 
+        pod is deployed.
   
 objects:
 - apiVersion: apps/v1

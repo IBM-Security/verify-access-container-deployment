@@ -41,7 +41,7 @@ cd iamlab && docker-compose up -d
 # Open https://127.0.0.2 in your browser
 ```
 
-**Default credentials:** `admin` / `Passw0rd` (⚠️ Change in production!)
+**Default credentials:** `admin` / `Passw0rd` (⚠️ Change !)
 
 ## Prerequisites
 
