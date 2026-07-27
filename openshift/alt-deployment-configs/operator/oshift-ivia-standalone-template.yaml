@@ -31,6 +31,19 @@ message: |-
         pod is deployed.
   
 objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: verify-access-operator
+  stringData:
+   ro.pwd: ${RO_PWD}
+   rw.pwd: ${RW_PWD}
+   user: ${USER}
+   url: ${URL}
+  data:
+   tls.cert: ${B64_TLS_CERT}
+
+
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -126,62 +139,6 @@ objects:
         - name: verify-access-operator
           secret:
             secretName: verify-access-operator
-
-- apiVersion: ibm.com/v1
-  kind: IBMSecurityVerifyAccess
-  metadata:
-    annotations:
-      deployment.kubernetes.io/revision: "1"
-    labels:
-      name: ${APP_NAME}-wrp
-    name: ${APP_NAME}-wrp
-  spec:
-    image: ${IVIA_IMAGE_NAME}-wrp:${IVIA_VERSION}
-    # fixpacks:
-    #   - ${FIXPACKS}
-    # volumes:
-    #   - name: ${VOLUMES}
-    snapshotId: ${SNAPSHOT_ID}
-    instance: ${WRP_INSTANCE}
-    language: ${LANGUAGE}
-    replicas: 1
-
-- apiVersion: ibm.com/v1
-  kind: IBMSecurityVerifyAccess
-  metadata:
-    annotations:
-      deployment.kubernetes.io/revision: "1"
-    labels:
-      name: ${APP_NAME}-runtime
-    name: ${APP_NAME}-runtime
-  spec:
-    image: ${IVIA_IMAGE_NAME}-runtime:${IVIA_VERSION}
-    # fixpacks:
-    #   - ${FIXPACKS}
-    # volumes:
-    #   - name: ${VOLUMES}
-    snapshotId: ${SNAPSHOT_ID}
-    language: ${LANGUAGE}
-    replicas: 1
-
-- apiVersion: ibm.com/v1
-  kind: IBMSecurityVerifyAccess
-  metadata:
-    annotations:
-      deployment.kubernetes.io/revision: "1"
-    labels:
-      name: ${APP_NAME}-dsc
-    name: ${APP_NAME}-dsc
-  spec:
-    image: ${IVIA_IMAGE_NAME}-dsc:${IVIA_VERSION}
-    # fixpacks:
-    #   - ${FIXPACKS}
-    # volumes:
-    #   - name: ${VOLUMES}
-    instance: ${DSC_INSTANCE}
-    snapshotId: ${SNAPSHOT_ID}
-    language: ${LANGUAGE}
-    replicas: 1
 
 - apiVersion: v1
   kind: Service
@@ -280,11 +237,26 @@ parameters:
   - displayName: IVIA Image Version
     description: The tag that will be used to pull the ibmcom/isam image.
     name: IVIA_VERSION
-    value: 11.0.2.0
+    value: 11.0.3.0
   - displayName: Snapshot Id
     description: The snapshot id to use.
     name: SNAPSHOT_ID
     value: operator-template
+  - displayName: ro.pwd
+    name: RO_PWD
+    required: true
+  - displayName: rw.pwd
+    name: RW_PWD
+    required: true
+  - displayName: user
+    name: USER
+    required: true
+  - displayName: url
+    name: URL
+    required: true
+  - displayName: tls.cert
+    name: B64_TLS_CERT
+    required: true
   - displayName: Reverse Proxy Instance
     description: The name of the wrp instance to start in the reverse proxy runtime container.
     name: WRP_INSTANCE
